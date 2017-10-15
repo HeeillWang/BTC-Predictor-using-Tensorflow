@@ -5,9 +5,23 @@ import numpy as np
 #from sklearn.preprocessing import MinMaxScaler
 tf.set_random_seed(777)  # for reproducibility
 
+def MinMaxScaler(tensor):
+    tensor = tf.div(
+       tf.subtract(
+          tensor, 
+          tf.reduce_min(tensor)
+       ), 
+       tf.subtract(
+          tf.reduce_max(tensor), 
+          tf.reduce_min(tensor)
+       )
+    )
+    
+    return tensor
+
 
 filename_queue = tf.train.string_input_producer(
-    ['BCHARTS-BITSTAMPUSD.csv'], shuffle=False, name='filename_queue')
+    ['train_data.csv'], shuffle=False, name='filename_queue')
 
 reader = tf.TextLineReader()
 key, value = reader.read(filename_queue)
@@ -28,6 +42,10 @@ layer1 = 100
 layer2 = 100
 # dropout (keep_prob) rate  0.7 on training, but should be 1 for testing
 
+#normalize
+#for i in range(num_input):
+#    xy[i] = tf.to_float(xy[i])
+#    xy[i] = MinMaxScaler(xy[i])
 
 # collect batches of csv in
 train_x_batch, train_y_batch = \
@@ -99,4 +117,28 @@ coord.join(threads)
 
 
 print('Learning Finished!')
+
+#test
+filename_queue = tf.train.string_input_producer(
+    ['test_data.csv'], shuffle=False, name='filename_queue')
+
+reader = tf.TextLineReader()
+key, value = reader.read(filename_queue)
+
+# Default values, in case of empty columns. Also specifies the type of the
+# decoded result.
+record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.]]
+xyz = tf.decode_csv('test_data.csv', record_defaults=record_defaults)
+
+# Test model and check accuracy
+train_x_batch2, train_y_batch2 = \
+    tf.train.batch([xyz[0:-1], xyz[-1:]], batch_size=200)
+
+batch_xs, batch_ys = sess.run([train_x_batch2, train_y_batch2])
+print(batch_xs)
+exit()
+
+correct_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y_one_hot, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print('Accuracy:', sess.run(accuracy, feed_dict={X:batch_xs, Y: batch_ys}))
 
