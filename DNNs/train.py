@@ -118,27 +118,11 @@ coord.join(threads)
 
 print('Learning Finished!')
 
-#test
-filename_queue = tf.train.string_input_producer(
-    ['test_data.csv'], shuffle=False, name='filename_queue')
-
-reader = tf.TextLineReader()
-key, value = reader.read(filename_queue)
-
-# Default values, in case of empty columns. Also specifies the type of the
-# decoded result.
-record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.]]
-xyz = tf.decode_csv('test_data.csv', record_defaults=record_defaults)
-
-# Test model and check accuracy
-train_x_batch2, train_y_batch2 = \
-    tf.train.batch([xyz[0:-1], xyz[-1:]], batch_size=200)
-
-batch_xs, batch_ys = sess.run([train_x_batch2, train_y_batch2])
-print(batch_xs)
-exit()
-
+#
+#Test
+#
+data = np.loadtxt("test_data.csv", delimiter=",", dtype=np.float32)
 correct_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y_one_hot, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-print('Accuracy:', sess.run(accuracy, feed_dict={X:batch_xs, Y: batch_ys}))
+print('Accuracy:', sess.run(accuracy, feed_dict={X:data[0:, :-1], Y: data[0:, -1:]}))
 
