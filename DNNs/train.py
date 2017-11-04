@@ -27,17 +27,18 @@ key, value = reader.read(filename_queue)
 
 # Default values, in case of empty columns. Also specifies the type of the
 # decoded result.
-record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.]]
+record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.],[0.]]
 xy = tf.decode_csv(value, record_defaults=record_defaults)
 
 # Basic parameters
-num_input = 7
+num_input = 8
 num_output = 2
 batch_size = 100
-learning_rate = 0.0001
-training_epochs = 100
-layer1 = 200
-layer2 = 200
+learning_rate = 0.0005
+training_epochs = 300
+layer1 = 100
+layer2 = 100
+layer3 = 50
 # dropout (keep_prob) rate  0.7 on training, but should be 1 for testing
 
 #normalize
@@ -75,10 +76,17 @@ W2 = tf.get_variable("W2", shape=[layer1, layer2],
 b2 = tf.Variable(tf.random_normal([layer2]))
 L2 = tf.nn.relu(tf.matmul(L1, W2) + b2)
 
-W3 = tf.get_variable("W3", shape=[layer2, num_output],
+W3 = tf.get_variable("W3", shape=[layer2, layer3],
                      initializer=tf.contrib.layers.xavier_initializer())
-b3 = tf.Variable(tf.random_normal([num_output]))
-hypothesis = tf.matmul(L2, W3) + b3
+b3 = tf.Variable(tf.random_normal([layer3]))
+L3 = tf.nn.relu(tf.matmul(L2, W3) + b3)
+
+
+W4 = tf.get_variable("W4", shape=[layer3, num_output],
+                     initializer=tf.contrib.layers.xavier_initializer())
+b4 = tf.Variable(tf.random_normal([num_output]))
+
+hypothesis = tf.matmul(L3, W4) + b4
 
 # cost/loss function
 #cost = tf.reduce_mean(tf.square(hypothesis - Y))
@@ -101,7 +109,7 @@ threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 # train my model
 for epoch in range(training_epochs):
     avg_cost = 0
-    total_batch = int(2193 / batch_size)
+    total_batch = int(1800 / batch_size)
 
     for i in range(total_batch):
         batch_xs, batch_ys = sess.run([train_x_batch, train_y_batch])
