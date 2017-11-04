@@ -2,7 +2,6 @@
 
 import tensorflow as tf
 import numpy as np
-#from sklearn.preprocessing import MinMaxScaler
 tf.set_random_seed(777)  # for reproducibility
 
 def MinMaxScaler(tensor):
@@ -31,21 +30,21 @@ key, value = reader.read(filename_queue)
 record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.]]
 xy = tf.decode_csv(value, record_defaults=record_defaults)
 
-
 # Basic parameters
 num_input = 7
 num_output = 2
 batch_size = 100
 learning_rate = 0.0001
-training_epochs = 15
-layer1 = 100
-layer2 = 100
+training_epochs = 100
+layer1 = 200
+layer2 = 200
 # dropout (keep_prob) rate  0.7 on training, but should be 1 for testing
 
 #normalize
 #for i in range(num_input):
 #    xy[i] = tf.to_float(xy[i])
 #    xy[i] = MinMaxScaler(xy[i])
+
 
 # collect batches of csv in
 train_x_batch, train_y_batch = \
