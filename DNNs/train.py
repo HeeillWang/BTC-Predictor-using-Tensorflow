@@ -27,15 +27,15 @@ key, value = reader.read(filename_queue)
 
 # Default values, in case of empty columns. Also specifies the type of the
 # decoded result.
-record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.],[0.]]
+record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.],[0.],[0.]]
 xy = tf.decode_csv(value, record_defaults=record_defaults)
 
 # Basic parameters
-num_input = 8
+num_input = 9
 num_output = 2
 batch_size = 100
 learning_rate = 0.0005
-training_epochs = 300
+training_epochs = 10
 layer1 = 100
 layer2 = 100
 layer3 = 50
@@ -95,7 +95,7 @@ hypothesis = tf.matmul(L3, W4) + b4
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
     logits=hypothesis, labels=Y_one_hot))
 
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
 
 # initialize
 sess = tf.Session()
@@ -119,9 +119,9 @@ for epoch in range(training_epochs):
 
     print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))
 
+
 coord.request_stop()
 coord.join(threads)
-
 
 print('Learning Finished!')
 

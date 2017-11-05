@@ -1,12 +1,15 @@
 import numpy as np
 
 size_train = 1800	# train data size
-normal_columns = 8	# number of columns that sholud be normailized
+normal_columns = 9	# number of columns that sholud be normailized
 scale_factor = 1	# datas are normalized 0 ~ scale_factor
 
 data = np.loadtxt("data.csv", delimiter=",", dtype=np.float32)
-normal_data = data[0:, :normal_columns]
-other_data = data[0:, normal_columns:]
+size_test = data.shape[0] - size_train
+print(size_test)
+
+#normal_data = data[0:, :normal_columns]
+#other_data = data[0:, normal_columns:]
 
 
 #Normalize
@@ -15,9 +18,10 @@ other_data = data[0:, normal_columns:]
 
 data *= scale_factor / np.max(np.abs(data),axis=0)
 
-#Save train data
-np.savetxt("train_data.csv", data[0:size_train], delimiter=",", fmt="%f")
-
 #Save test data
-np.savetxt("test_data.csv", data[size_train:], delimiter=",", fmt="%f")
+np.savetxt("test_data.csv", data[0:size_test], delimiter=",", fmt="%f")
+
+#Save train data
+np.savetxt("train_data.csv", data[size_test:], delimiter=",", fmt="%f")
+
 
