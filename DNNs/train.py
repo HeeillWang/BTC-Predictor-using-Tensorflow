@@ -4,20 +4,6 @@ import tensorflow as tf
 import numpy as np
 tf.set_random_seed(777)  # for reproducibility
 
-def MinMaxScaler(tensor):
-    tensor = tf.div(
-       tf.subtract(
-          tensor, 
-          tf.reduce_min(tensor)
-       ), 
-       tf.subtract(
-          tf.reduce_max(tensor), 
-          tf.reduce_min(tensor)
-       )
-    )
-    
-    return tensor
-
 
 filename_queue = tf.train.string_input_producer(
     ['train_data.csv'], shuffle=False, name='filename_queue')
@@ -41,11 +27,6 @@ layer2 = 100
 layer3 = 50
 # dropout (keep_prob) rate  0.7 on training, but should be 1 for testing
 
-#normalize
-#for i in range(num_input):
-#    xy[i] = tf.to_float(xy[i])
-#    xy[i] = MinMaxScaler(xy[i])
-
 
 # collect batches of csv in
 train_x_batch, train_y_batch = \
@@ -60,10 +41,6 @@ Y = tf.placeholder(tf.int32, shape=[None, 1])
 Y_one_hot = tf.one_hot(Y, num_output)  # one hot
 Y_one_hot = tf.reshape(Y_one_hot, [-1, num_output])
 
-
-# Weight variables
-#W = tf.Variable(tf.random_normal([9, 1]), name='weight', dtype=tf.float32)
-#b = tf.Variable(tf.random_normal([1]), name='bias', dtype=tf.float32)
 
 # Hypothesis
 W1 = tf.get_variable("W1", shape=[num_input, layer1],
@@ -132,4 +109,3 @@ data = np.loadtxt("test_data.csv", delimiter=",", dtype=np.float32)
 correct_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y_one_hot, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 print('Accuracy:', sess.run(accuracy, feed_dict={X:data[0:, :-1], Y: data[0:, -1:]}))
-
