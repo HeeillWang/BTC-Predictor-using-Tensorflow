@@ -74,6 +74,9 @@ cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
 
 optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
 
+# Add ops to save and restore all the variables.
+saver = tf.train.Saver()
+
 # initialize
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
@@ -96,6 +99,9 @@ for epoch in range(training_epochs):
 
     print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))
 
+# Save the variables to disk.
+save_path = saver.save(sess, "./saved/saved_model.ckpt")
+print("Models saved in : %s" % save_path)
 
 coord.request_stop()
 coord.join(threads)
