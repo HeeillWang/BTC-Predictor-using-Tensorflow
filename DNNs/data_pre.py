@@ -4,9 +4,8 @@ size_train = 1800	# train data size
 normal_columns = 9	# number of columns that sholud be normailized
 scale_factor = 1	# datas are normalized 0 ~ scale_factor
 
-data = np.loadtxt("data.csv", delimiter=",", dtype=np.float32)
+data = np.loadtxt("data.csv", delimiter=",", dtype=np.float32, skiprows=1)
 size_test = data.shape[0] - size_train
-print(size_test)
 
 #normal_data = data[0:, :normal_columns]
 #other_data = data[0:, normal_columns:]
