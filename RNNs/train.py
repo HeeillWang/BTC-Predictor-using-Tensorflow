@@ -1,24 +1,44 @@
 #Reference : https://github.com/hunkim/DeepLearningZeroToAll
 
-
 import tensorflow as tf
 import numpy as np
 tf.set_random_seed(777)  # for reproducibility
 
-num_input = 1
+'''
+parameter 
+
+data : numpy array
+
+--------------------
+returns 
+
+Normalized numpy array
+
+'''
+def MinMaxScaler(data):
+    # to avoid divide by zero, add noise
+    data *= 1 / (np.max(np.abs(data),axis=0) + 1e-8)
+    return data
+
+def MakeDataSet(data, num_seq):
+    ret = []
+    
+    for i in range(len(data) - num_seq):
+        ret.append(data[i:i+num_seq])
+
+    return ret
+
+num_input = 5
 num_seq = 10
-num_class = 2
+num_output = 1
 num_hidden = 2
 batch_size = 100
-learning_rate = 0.001
+learning_rate = 0.01
 epoch = 100
 
-x = np.loadtxt("train_data.csv", delimiter=",", dtype=np.float32)
-y = np.loadtxt("train_lable.csv", delimiter=",", dtype=np.float32)
+x = np.loadtxt('data.csv', delimiter=',', skiprows=1)
+x = MinMaxScaler(data)
+
+y = xy[:,[-1]]	# close price will be label
 
 
-X = tf.placeholder(tf.float32, [None, num_seq, num_input])
-Y = tf.placeholder(tf.float32, [None, num_class])
-
-cell = tf.nn.rnn_cell.BasicRNNCell(num_hidden)
-output, state = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
