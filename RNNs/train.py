@@ -7,12 +7,12 @@ tf.set_random_seed(777)  # for reproducibility
 '''
 parameter 
 
-data : numpy array
+- data : numpy array
 
 --------------------
 returns 
 
-Normalized numpy array
+- Normalized numpy array
 
 '''
 def MinMaxScaler(data):
@@ -23,20 +23,26 @@ def MinMaxScaler(data):
 '''
 parameter
 
-data : numpy array
+- data : numpy array
+- num_seq : number of sequence for input data
+- pos : index of label in data
 
 ------------------
 returns 
 
-created dataset numpy array.
+- x : input dataset 
+- y : label dataset
 '''
-def MakeDataSet(data, num_seq):
-    ret = []
-    
-    for i in range(len(data) - num_seq):
-        ret.append(data[i:i+num_seq])
+def MakeDataSet(data, num_seq, pos):
+    x = []
+    y = []
 
-    return ret
+    for i in range(len(data) - num_seq):
+        x.append(data[i:i+num_seq])
+        temp = []
+        y.append([data[i+num_seq][pos]])
+
+    return (x,y)
 
 num_input = 5
 num_seq = 10
@@ -53,7 +59,42 @@ x = MinMaxScaler(x)
 y = x[:,[-1]]	# close price will be label
 
 
-x = MakeDataSet(x, num_seq)	# shape = [None, num_seq, num_input]
-y = MakeDataSet(y, num_seq)	# shape = [None, num_seq, num_output]
+x, y = MakeDataSet(x, num_seq, num_input-1)	# shape = [None, num_seq, num_input]
+
+train_len = int(len(x) * data_split_rate)
+test_len = len(x) - train_len
+
+train_x = x[:train_len]
+train_y = y[:train_len]
+test_x = x[train_len:]
+test_y = y[train_len:]
+
+X = tf.placeholder(tf.float32, [None, num_seq, num_input])
+Y= tf.placeholder(tf.float32, [None, num_output])
+
+#RNN Model + fully-connected
+cell = tf.contrib.rnn.BasicLSTMCell(num_units=num_hidden, state_is_tuple=True, activation=tf.tanh)
+outputs, _ = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+predict = tf.contrib.layers.fully_connected(outputs[:,-1], num_output, activation_fn=None)  # use last cell's output
+cost = tf.reduce_sum(tf.square(predict - Y))    # MSE
+optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+
+# RMSE for accuracy test
+targets = tf.placeholder(tf.float32, [None, 1])
+predictions = tf.placeholder(tf.float32, [None, 1])
+rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
 
 
+with tf.Session() as sess:
+    init = tf.global_variables_initializer()
+    sess.run(init)
+
+    # Training
+    for i in range(epoch):
+        _, loss = sess.run([optimizer, cost], feed_dict = {X : train_x, Y:train_y})
+        print("Epoch ", epoch, " : ", loss)
+
+    # Testing
+    test_predict = sess.run(predict, feed_dict={X:test_x})
+    rmse_val = sess.run(rmse, feed_dict={targets:test_y, predictions:test_predict})
+    print("RMSE for test data : ", rmse_val)
