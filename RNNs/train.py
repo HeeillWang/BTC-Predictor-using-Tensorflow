@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 tf.set_random_seed(777)  # for reproducibility
 
 '''
@@ -45,11 +46,11 @@ def MakeDataSet(data, num_seq, pos):
     return (x,y)
 
 num_input = 5
-num_seq = 10
+num_seq = 100
 num_output = 1
 num_hidden = 2
 learning_rate = 0.01
-epoch = 100
+epoch = 10000
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
@@ -92,9 +93,18 @@ with tf.Session() as sess:
     # Training
     for i in range(epoch):
         _, loss = sess.run([optimizer, cost], feed_dict = {X : train_x, Y:train_y})
-        print("i ", epoch, " : ", loss)
+        if((i+1) % 100 == 0):
+            print("Epoch ", i+1, " : ", loss)
 
     # Testing
     test_predict = sess.run(predict, feed_dict={X:test_x})
     rmse_val = sess.run(rmse, feed_dict={targets:test_y, predictions:test_predict})
     print("RMSE for test data : ", rmse_val)
+
+    # Show test accuracy by matplotlib
+    plt.plot(test_y)
+    plt.plot(test_predict)
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    plt.show()
+

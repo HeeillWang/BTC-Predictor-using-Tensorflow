@@ -48,11 +48,11 @@ def MakeDataSet(data, num_seq, pos):
     return (x,y)
 
 num_input = 5
-num_seq = 10
+num_seq = 100
 num_output = 2  # number of output class by one_hot
 num_hidden = 2
 learning_rate = 0.01
-epoch = 500
+epoch = 1000
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
@@ -82,7 +82,7 @@ cell = tf.contrib.rnn.BasicLSTMCell(num_units=num_hidden, state_is_tuple=True, a
 outputs, _ = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
 predict = tf.contrib.layers.fully_connected(outputs[:,-1], num_output, activation_fn=None)  # use last cell's output
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predict, labels=Y_one_hot))
-optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
 
 
 
@@ -93,7 +93,8 @@ with tf.Session() as sess:
     # Training
     for i in range(epoch):
         _, loss = sess.run([optimizer, cost], feed_dict = {X : train_x, Y:train_y})
-        print("Epoch ", i, " : ", loss)
+        if((i+1) % 100 == 0):
+          print("Epoch ", i+1, " : ", loss)
 
     # Testing
     correct_prediction = tf.equal(tf.argmax(predict, 1), tf.argmax(Y_one_hot, 1))
