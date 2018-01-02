@@ -13,15 +13,15 @@ key, value = reader.read(filename_queue)
 
 # Default values, in case of empty columns. Also specifies the type of the
 # decoded result.
-record_defaults = [[0.], [0.], [0.], [0.], [0.],[0.],[0.],[0.],[0.],[0.]]
+record_defaults = [[0.], [0.], [0.], [0.], [0.], [0.]]
 xy = tf.decode_csv(value, record_defaults=record_defaults)
 
 # Basic parameters
-num_input = 9
+num_input = 5
 num_output = 2
 batch_size = 100
 learning_rate = 0.0005
-training_epochs = 10
+training_epochs = 100
 layer1 = 100
 layer2 = 100
 layer3 = 50
@@ -89,7 +89,7 @@ threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 # train my model
 for epoch in range(training_epochs):
     avg_cost = 0
-    total_batch = int(1800 / batch_size)
+    total_batch = int(2800 / batch_size)
 
     for i in range(total_batch):
         batch_xs, batch_ys = sess.run([train_x_batch, train_y_batch])
