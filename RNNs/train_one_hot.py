@@ -52,7 +52,7 @@ num_seq = 100
 num_output = 2  # number of output class by one_hot
 num_hidden = 2
 learning_rate = 0.01
-epoch = 10000
+epoch = 100
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
@@ -105,9 +105,5 @@ with tf.Session() as sess:
     correct_prediction = tf.equal(tf.argmax(predict, 1), tf.argmax(Y_one_hot, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     print('Accuracy:', sess.run(accuracy, feed_dict={X: test_x, Y: test_y}))
-    print('outputs : ', sess.run(outputs[:30], feed_dict={X:test_x}))
-    print('predict : ', sess.run(predict[:30], feed_dict={X: test_x}))
-    print('label : ', test_y[:30])
-
 
 
