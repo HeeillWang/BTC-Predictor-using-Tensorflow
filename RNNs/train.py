@@ -45,20 +45,19 @@ def MakeDataSet(data, num_seq, pos):
 
     return (x,y)
 
-num_input = 5
+num_input = 1
 num_seq = 100
 num_output = 1
 num_hidden = 2
 learning_rate = 0.01
-epoch = 10000
+epoch = 5000
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
-x = np.loadtxt('hourly_data.csv', delimiter=',', skiprows=1)
+x = np.loadtxt('../Crawler/data.csv', delimiter=',', usecols=(1))
+x = np.reshape(x, (-1,1))
+
 x = MinMaxScaler(x)
-
-y = x[:,[-1]]	# close price will be label
-
 
 x, y = MakeDataSet(x, num_seq, num_input-1)	# shape = [None, num_seq, num_input]
 
@@ -93,7 +92,7 @@ with tf.Session() as sess:
     # Training
     for i in range(epoch):
         _, loss = sess.run([optimizer, cost], feed_dict = {X : train_x, Y:train_y})
-        if((i+1) % 100 == 0):
+        if((i+1) % 50 == 0):
             print("Epoch ", i+1, " : ", loss)
 
     # Testing
