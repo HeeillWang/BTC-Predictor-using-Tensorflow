@@ -45,12 +45,13 @@ def MakeDataSet(data, num_seq, pos):
 
     return (x,y)
 
-num_input = 1
+num_input = 12
+label_pos = 0
 num_seq = 100
 num_output = 1
 num_hidden = 2
 learning_rate = 0.01
-epoch = 5000
+epoch = 10000
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
@@ -59,7 +60,7 @@ x = np.reshape(x, (-1,1))
 
 x = MinMaxScaler(x)
 
-x, y = MakeDataSet(x, num_seq, num_input-1)	# shape = [None, num_seq, num_input]
+x, y = MakeDataSet(x, num_seq, label_pos)	# shape = [None, num_seq, num_input]
 
 train_len = int(len(x) * data_split_rate)
 test_len = len(x) - train_len
