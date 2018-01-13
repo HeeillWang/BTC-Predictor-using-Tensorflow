@@ -45,18 +45,19 @@ def MakeDataSet(data, num_seq, pos):
 
     return (x,y)
 
-num_input = 12
+num_input = 3
 label_pos = 0
 num_seq = 100
 num_output = 1
 num_hidden = 2
 learning_rate = 0.01
-epoch = 10000
+epoch = 5000
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
-x = np.loadtxt('../Crawler/data.csv', delimiter=',', usecols=(1))
-x = np.reshape(x, (-1,1))
+x = np.loadtxt('../Crawler/data.csv', delimiter=',', usecols=(1,2,3), skiprows=1)
+#x = np.reshape(x, (-1,1))
+
 
 x = MinMaxScaler(x)
 
