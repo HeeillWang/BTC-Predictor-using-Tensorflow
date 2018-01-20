@@ -1,10 +1,19 @@
+from datetime import datetime
+
 import requests as rq
 import time
+import datetime
 import numpy as np
+from pip.compat import total_seconds
 
-interval = 1638000000
-start = 1356966000000
-end = 1514732400000
+
+interval = int(total_seconds(datetime.timedelta(days=14)) * 1000)
+start = datetime.datetime(year=2013,month=5, day=5, hour=9,minute=0)
+start = int(start.timestamp() * 1000)
+end = datetime.datetime.now()
+end = int(end.timestamp() * 1000)
+
+
 url = 'http://index.bithumb.com/api/coinmarketcap/localAPI.php'
 
 target = start
@@ -13,6 +22,7 @@ coins = [
     'xrp',
     'eth',
 ]
+
 
 arr = []
 title = []  # title of columns
@@ -24,7 +34,7 @@ for coin in coins:
 arr.append(title)
 
 
-while(target + interval <= 1514732400000):
+while(target + interval <= end):
     json_list = []
     json_len = 0
 
