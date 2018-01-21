@@ -51,7 +51,7 @@ num_seq = 100
 num_output = 1
 num_hidden = 2
 learning_rate = 0.01
-epoch = 1000
+epoch = 0
 data_split_rate = 0.7	# dataset split rate for train data. Others will be test data
 
 
@@ -89,6 +89,9 @@ predictions = tf.placeholder(tf.float32, [None, 1])
 rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
 
 
+# Add ops to save and restore all the variables.
+saver = tf.train.Saver()
+
 with tf.Session() as sess:
     init = tf.global_variables_initializer()
     sess.run(init)
@@ -99,10 +102,16 @@ with tf.Session() as sess:
         if((i+1) % 50 == 0):
             print("Epoch ", i+1, " : ", loss)
 
+    saver.restore(sess, "./saved/saved_model.ckpt")
+
     # Testing
     test_predict = sess.run(predict, feed_dict={X:test_x})
     rmse_val = sess.run(rmse, feed_dict={targets:test_y, predictions:test_predict})
     print("RMSE for test data : ", rmse_val)
+
+    # Save the variables to disk.
+    save_path = saver.save(sess, "./saved/saved_model.ckpt")
+    print("Models saved in : %s" % save_path)
 
     # Show test accuracy by matplotlib
     plt.plot(test_y)
@@ -110,4 +119,6 @@ with tf.Session() as sess:
     plt.xlabel("Time")
     plt.ylabel("Price")
     plt.show()
+
+
 
