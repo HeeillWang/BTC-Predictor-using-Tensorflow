@@ -17,10 +17,32 @@ returns
 - Normalized numpy array
 
 '''
-def MinMaxScaler(data):
+def MinMaxScaler(data, label_pos):
     # to avoid divide by zero, add noise
-    data *= 1 / (np.max(np.abs(data),axis=0) + 1e-8)
-    return data
+    data = (data - np.min(np.abs(data), axis=0)) / (np.max(np.abs(data),axis=0) - np.min(np.abs(data), axis=0) + 1e-8)
+    return (data,np.min(data[:,label_pos]), np.max(data[:, label_pos]))
+
+
+'''
+decode scaled(0~1) predict value to original value
+
+parameter
+
+- predict : decoding target
+- min : minimum value for data label
+- max : maximum value for data label
+
+------------------
+returns 
+
+- ret : decoded value
+'''
+def decodePredict(predict, min, max):
+    ret = predict * (max - min + 1e-8)
+    ret = ret + min
+
+    return ret
+
 
 '''
 parameter
@@ -41,10 +63,13 @@ def MakeDataSet(data, num_seq, pos):
 
     for i in range(len(data) - num_seq):
         x.append(data[i:i+num_seq])
-        temp = []
         y.append([data[i+num_seq][pos]])
 
     return (x,y)
+
+
+
+
 
 num_input = 3
 label_pos = 0
@@ -64,7 +89,7 @@ if(num_input == 1):
     x = np.reshape(x, (-1,1))
 
 
-x = MinMaxScaler(x)
+x = MinMaxScaler(x, label_pos)
 
 x, y = MakeDataSet(x, num_seq, label_pos)	# shape = [None, num_seq, num_input]
 

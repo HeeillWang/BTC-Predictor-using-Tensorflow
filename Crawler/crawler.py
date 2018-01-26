@@ -24,6 +24,7 @@ coins = [
 ]
 
 
+
 arr = []
 title = []  # title of columns
 title.append("time")
@@ -34,18 +35,29 @@ for coin in coins:
 arr.append(title)
 
 
-while(target + interval <= end):
+while(target <= end):
     json_list = []
     json_len = 0
 
     for coin in coins:
-        res = rq.get(url, params={
-            'api': 'graph',
-            'coin': coin,
-            'subject': 'price_usd',
-            'start': target,
-            'end': target + interval
-        })
+
+        if target + interval >= end :
+            res = rq.get(url, params={
+                'api': 'graph',
+                'coin': coin,
+                'subject': 'price_usd',
+                'start': target,
+                'end': end
+            })
+        else:
+            res = rq.get(url, params={
+                'api': 'graph',
+                'coin': coin,
+                'subject': 'price_usd',
+                'start': target,
+                'end': target + interval
+            })
+
 
         if(coin == 'btc'):
             json_len = len(res.json())
