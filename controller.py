@@ -3,4 +3,7 @@ sys.path.append('./Crawler')
 sys.path.append('./RNNs')
 
 import crawler
-import train
+#import train
+
+
+crawler.collect_data("./Crawler/data.csv", ['btc', 'xrp', 'eth'])
