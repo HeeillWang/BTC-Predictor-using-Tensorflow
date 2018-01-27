@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from os import listdir
 tf.set_random_seed(777)  # for reproducibility
 
+def hello():
+    print("!!!!")
+
 '''
 parameter 
 
