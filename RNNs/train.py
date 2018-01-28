@@ -68,36 +68,12 @@ def MakeDataSet(data, num_seq, pos):
 
     return (x,y)
 
-
-def train_predict(path):
+class Model():
     num_input = 3
-    label_pos = 0
     num_seq = 100
     num_output = 1
     num_hidden = 2
     learning_rate = 0.01
-    data_split_rate = 0.7  # dataset split rate for train data. Others will be test data
-
-
-    file_name = "saved_model_epoch_"  # prefix of file name that will be saved
-    path = path + "/saved/"  # path of files
-
-    x = np.loadtxt('./Crawler/data.csv', delimiter=',', usecols=(1, 2, 3), skiprows=1)
-
-    if (num_input == 1):
-        x = np.reshape(x, (-1, 1))
-
-    x, label_min, label_max = MinMaxScaler(x, label_pos)
-
-    x, y = MakeDataSet(x, num_seq, label_pos)  # shape = [None, num_seq, num_input]
-
-    train_len = int(len(x) * data_split_rate)
-
-    train_x = x[:train_len]
-    train_y = y[:train_len]
-    test_x = x[train_len:]
-    test_y = y[train_len:]
-
 
     X = tf.placeholder(tf.float32, [None, num_seq, num_input])
     Y = tf.placeholder(tf.float32, [None, num_output])
@@ -115,6 +91,66 @@ def train_predict(path):
     predictions = tf.placeholder(tf.float32, [None, 1])
     rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
 
+def load_model(path, sess):
+    file_name = "saved_model_epoch_"  # prefix of file name that will be loaded
+
+    print("Do you want to restore your model? (Y/N)")
+    ans = input()
+
+    old_epoch = 0  # epoch of restored model.
+
+    saver = tf.train.Saver()
+
+    if (ans == 'y') or (ans == 'Y'):
+        num = 0
+        model_list = []
+
+        # list all models saved.
+        for f in listdir(path):
+            if f.find(".ckpt.meta") != -1:
+                model_list.append(f.replace(".meta", ''))
+                print(str(num + 1) + " - " + model_list[num])
+                num += 1
+
+        if num == 0:
+            print("No models found")
+        else:
+            print("Select model by number : ")
+            num = int(input())
+            saver.restore(sess, path + model_list[num - 1])
+            print(model_list[num - 1], "is restored")
+            old_epoch = int((model_list[num - 1].replace(file_name, "")).replace(".ckpt", ""))
+            print("Restored epoch : ", old_epoch)
+
+    return old_epoch, sess
+
+
+def train(path):
+    data_split_rate = 0.7  # dataset split rate for train data. Others will be test data
+    label_pos = 0
+
+    model = Model()
+
+    file_name = "saved_model_epoch_"  # prefix of file name that will be saved
+    path = path + "/saved/"  # path of files
+
+    x = np.loadtxt('./Crawler/data.csv', delimiter=',', usecols=(1, 2, 3), skiprows=1)
+
+    if model.num_input == 1:
+        x = np.reshape(x, (-1, 1))
+
+    x, label_min, label_max = MinMaxScaler(x, label_pos)
+
+    x, y = MakeDataSet(x, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
+
+    train_len = int(len(x) * data_split_rate)
+
+    train_x = x[:train_len]
+    train_y = y[:train_len]
+    test_x = x[train_len:]
+    test_y = y[train_len:]
+
+
     # Add ops to save and restore all the variables.
     saver = tf.train.Saver()
 
@@ -122,32 +158,7 @@ def train_predict(path):
         init = tf.global_variables_initializer()
         sess.run(init)
 
-        print("Do you want to restore your model? (Y/N)")
-        ans = input()
-
-        old_epoch = 0  # epoch of restored model.
-
-        if (ans == 'y') or (ans == 'Y'):
-            num = 0
-            model_list = []
-
-            # list all models saved.
-            for f in listdir(path):
-                if f.find(".ckpt.meta") != -1:
-                    model_list.append(f.replace(".meta", ''))
-                    print(str(num + 1) + " - " + model_list[num])
-                    num += 1
-
-            if num == 0:
-                print("No models found")
-            else:
-                print("Select model by number : ")
-                num = int(input())
-                saver.restore(sess, path + model_list[num - 1])
-                print(model_list[num - 1], "is restored")
-                old_epoch = int((model_list[num - 1].replace(file_name, "")).replace(".ckpt", ""))
-                print("Restored epoch : ", old_epoch)
-
+        old_epoch, sess = load_model(path, sess)
 
 
         print("Input training epoch : ")
@@ -155,13 +166,13 @@ def train_predict(path):
 
         # Training
         for i in range(epoch):
-            _, loss = sess.run([optimizer, cost], feed_dict={X: train_x, Y: train_y})
+            _, loss = sess.run([model.optimizer, model.cost], feed_dict={model.X: train_x, model.Y: train_y})
             if ((i + 1) % 50 == 0):
                 print("Epoch ", i + 1, " : ", loss)
 
         # Testing
-        test_predict = sess.run(predict, feed_dict={X: test_x})
-        rmse_val = sess.run(rmse, feed_dict={targets: test_y, predictions: test_predict})
+        test_predict = sess.run(model.predict, feed_dict={model.X: test_x})
+        rmse_val = sess.run(model.rmse, feed_dict={model.targets: test_y, model.predictions: test_predict})
         print("RMSE for test data : ", rmse_val)
 
         # Save the variables to disk.
@@ -174,9 +185,6 @@ def train_predict(path):
         plt.xlabel("Time")
         plt.ylabel("Price")
         plt.show()
-
-
-
 
 
 
