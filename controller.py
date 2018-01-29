@@ -6,4 +6,4 @@ import crawler
 import train
 
 
-train.train_predict('./RNNs')
+train.train('./RNNs')

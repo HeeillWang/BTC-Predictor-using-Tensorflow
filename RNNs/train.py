@@ -20,8 +20,11 @@ returns
 '''
 def MinMaxScaler(data, label_pos):
     # to avoid divide by zero, add noise
+    label_min = np.min(data[:,label_pos])
+    label_max = np.max(data[:,label_pos])
+
     data = (data - np.min(np.abs(data), axis=0)) / (np.max(np.abs(data),axis=0) - np.min(np.abs(data), axis=0) + 1e-8)
-    return (data,np.min(data[:,label_pos]), np.max(data[:, label_pos]))
+    return (data, label_min, label_max)
 
 
 '''
@@ -134,12 +137,12 @@ def train(path):
     file_name = "saved_model_epoch_"  # prefix of file name that will be saved
     path = path + "/saved/"  # path of files
 
-    x = np.loadtxt('./Crawler/data.csv', delimiter=',', usecols=(1, 2, 3), skiprows=1)
+    data = np.loadtxt('./Crawler/data.csv', delimiter=',', usecols=(1, 2, 3), skiprows=1)
 
     if model.num_input == 1:
-        x = np.reshape(x, (-1, 1))
+        data = np.reshape(data, (-1, 1))
 
-    x, label_min, label_max = MinMaxScaler(x, label_pos)
+    x, label_min, label_max = MinMaxScaler(data, label_pos)
 
     x, y = MakeDataSet(x, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
 
@@ -179,6 +182,8 @@ def train(path):
         save_path = saver.save(sess, path + file_name + str(epoch + old_epoch) + ".ckpt")
         print("Models saved in : %s" % save_path)
 
+        predict(path, data, label_min, label_max)
+
         # Show test accuracy by matplotlib
         plt.plot(test_y)
         plt.plot(test_predict)
@@ -187,4 +192,20 @@ def train(path):
         plt.show()
 
 
+def predict(path, data, label_min, label_max):
+    #path = path + "/saved/"  # path of files
+    model = Model()
+    label_pos = 0
 
+    with tf.Session() as sess:
+        old_epoch, sess = load_model(path, sess)
+
+        data_len = len(data)
+        x, _, _ = MinMaxScaler(data, label_pos)
+        x, _ = MakeDataSet(x[data_len - model.num_seq - 1:], model.num_seq, label_pos)
+
+
+        test_predict = sess.run(model.predict, feed_dict={model.X: x})
+        print(label_min, label_max)
+        print('Prediction')
+        print((test_predict * (label_max - label_min + 1e-08)) + label_min)
