@@ -6,4 +6,5 @@ import crawler
 import train
 
 
-train.train('./RNNs')
+#train.train('./RNNs')
+crawler.collect_data('data.csv',['btc'])

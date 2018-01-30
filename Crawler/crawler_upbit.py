@@ -23,7 +23,19 @@ def collect_data(path, coins):
     end = datetime.datetime.now()
     end = int(end.timestamp() * 1000)
 
-    url = 'http://index.bithumb.com/api/coinmarketcap/localAPI.php'
+    url = 'https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/60'
+
+    res = rq.get(url, params={
+        'code': 'CRIX.UPBIT.KRW-BTC',
+        'count': '10',
+    })
+
+    print(res)
+
+    for i in res.json():
+        print(i)
+
+    exit()
 
     target = start
     print("Collecting coin data : ",coins)
@@ -45,16 +57,15 @@ def collect_data(path, coins):
 
             if target + interval >= end:
                 res = rq.get(url, params={
-                    'api': 'graph',
-                    'coin': coin,
-                    'subject': 'price_usd',
+                    'code': 'CRIX.UPBIT.KRW-BTC',
+                    'count': 24,
                     'start': target,
                     'end': end
                 })
             else:
                 res = rq.get(url, params={
                     'api': 'graph',
-                    'coin': coin,
+                    'coin': 'btc',
                     'subject': 'price_usd',
                     'start': target,
                     'end': target + interval
@@ -86,3 +97,5 @@ def collect_data(path, coins):
 
     np.savetxt(path, arr, delimiter=',', fmt="%s")
     print("Coin data saved in : ", path)
+
+collect_data('df','df')

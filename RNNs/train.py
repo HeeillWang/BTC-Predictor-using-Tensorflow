@@ -193,7 +193,6 @@ def train(path):
 
 
 def predict(path, data, label_min, label_max):
-    #path = path + "/saved/"  # path of files
     model = Model()
     label_pos = 0
 
