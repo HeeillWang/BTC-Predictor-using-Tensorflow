@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from os import listdir
+import datetime
 tf.set_random_seed(777)  # for reproducibility
 
 
@@ -72,7 +73,7 @@ def MakeDataSet(data, num_seq, pos):
     return (x,y)
 
 class Model():
-    num_input = 3
+    num_input = 1
     num_seq = 100
     num_output = 1
     num_hidden = 2
@@ -89,10 +90,12 @@ class Model():
     cost = tf.reduce_sum(tf.square(predict - Y))  # MSE
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
-    # RMSE for accuracy test
+    # Accuracy Test
     targets = tf.placeholder(tf.float32, [None, 1])
     predictions = tf.placeholder(tf.float32, [None, 1])
     rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
+    mpe = tf.reduce_mean((tf.abs(targets - predictions)) / targets)
+
 
 def load_model(path, sess):
     file_name = "saved_model_epoch_"  # prefix of file name that will be loaded
@@ -127,6 +130,14 @@ def load_model(path, sess):
 
     return old_epoch, sess
 
+def up_down_accuracy(target, prediction):
+    acc_sum = 0
+
+    for i in range(len(target) - 2):
+        if((target[i] > target[i+1]) == (prediction[i] > prediction[i+1])):
+            acc_sum += 1
+
+    return acc_sum / (len(target) - 2)
 
 def train(path):
     data_split_rate = 0.7  # dataset split rate for train data. Others will be test data
@@ -137,7 +148,7 @@ def train(path):
     file_name = "saved_model_epoch_"  # prefix of file name that will be saved
     path = path + "/saved/"  # path of files
 
-    data = np.loadtxt('./Crawler/data.csv', delimiter=',', usecols=(1, 2, 3), skiprows=1)
+    data = np.loadtxt('./Crawler/data.csv', delimiter=',',usecols=(1), skiprows=1)
 
     if model.num_input == 1:
         data = np.reshape(data, (-1, 1))
@@ -173,10 +184,16 @@ def train(path):
             if ((i + 1) % 50 == 0):
                 print("Epoch ", i + 1, " : ", loss)
 
+        print("Train finished in : ",  datetime.datetime.now())
+
         # Testing
         test_predict = sess.run(model.predict, feed_dict={model.X: test_x})
         rmse_val = sess.run(model.rmse, feed_dict={model.targets: test_y, model.predictions: test_predict})
+        mpe_val = sess.run(model.mpe, feed_dict={model.targets: test_y, model.predictions:test_predict })
+
         print("RMSE for test data : ", rmse_val)
+        print("MPE for test data : ", mpe_val)
+        print("UP/Down prediction accuracy : ", up_down_accuracy(test_y, test_predict))
 
         # Save the variables to disk.
         save_path = saver.save(sess, path + file_name + str(epoch + old_epoch) + ".ckpt")
