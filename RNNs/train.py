@@ -9,6 +9,9 @@ tf.set_random_seed(777)  # for reproducibility
 
 
 '''
+min max sacling to 0 ~ 1
+if label_min and label_max is passed as parameter, use it for min max scaling
+
 parameter 
 
 - data : numpy array
@@ -17,15 +20,24 @@ parameter
 returns 
 
 - Normalized numpy array
-
+- label min and label max
 '''
-def MinMaxScaler(data, label_pos):
-    # to avoid divide by zero, add noise
-    label_min = np.min(data[:,label_pos])
-    label_max = np.max(data[:,label_pos])
+def MinMaxScaler(data, label_pos, label_min=0, label_max=0):
+    if label_min == 0 and label_max == 0:
+        label_min = np.min(data[:,label_pos])
+        label_max = np.max(data[:,label_pos])
 
-    data = (data - np.min(np.abs(data), axis=0)) / (np.max(np.abs(data),axis=0) - np.min(np.abs(data), axis=0) + 1e-8)
-    return (data, label_min, label_max)
+        # to avoid divide by zero, add noise
+        data = (data - np.min(np.abs(data), axis=0)) / (
+                    np.max(np.abs(data), axis=0) - np.min(np.abs(data), axis=0) + 1e-8)
+        return (data, label_min, label_max)
+    else:
+        # to avoid divide by zero, add noise
+        data = (data - label_min) / (label_max - label_min + 1e-8)
+
+        return data
+
+
 
 
 '''
@@ -149,21 +161,19 @@ def train(path):
     path = path + "/saved/"  # path of files
 
     data = np.loadtxt('./Crawler/data.csv', delimiter=',',usecols=(1), skiprows=1)
+    train_len = int(len(data) * data_split_rate)
 
     if model.num_input == 1:
         data = np.reshape(data, (-1, 1))
 
-    x, label_min, label_max = MinMaxScaler(data, label_pos)
+    test_data = data[train_len:]
+    train_data = data[:train_len]
 
-    x, y = MakeDataSet(x, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
+    train_data, label_min, label_max = MinMaxScaler(train_data, label_pos)
+    test_data = MinMaxScaler(test_data, label_pos, label_min, label_max)
 
-    train_len = int(len(x) * data_split_rate)
-
-    train_x = x[:train_len]
-    train_y = y[:train_len]
-    test_x = x[train_len:]
-    test_y = y[train_len:]
-
+    train_x, train_y = MakeDataSet(train_data, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
+    test_x, test_y = MakeDataSet(test_data, model.num_seq, label_pos)
 
     # Add ops to save and restore all the variables.
     saver = tf.train.Saver()
