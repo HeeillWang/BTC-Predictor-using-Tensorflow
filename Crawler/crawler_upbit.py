@@ -4,6 +4,7 @@ import requests as rq
 import time
 import datetime
 import numpy as np
+from time import gmtime, strftime
 from pip.compat import total_seconds
 
 '''
@@ -17,18 +18,14 @@ returns
 - none
 '''
 def collect_data(path, coins):
-    interval = int(total_seconds(datetime.timedelta(days=14)) * 1000)
-    start = datetime.datetime(year=2013, month=5, day=5, hour=9, minute=0)
-    start = int(start.timestamp() * 1000)
-    end = datetime.datetime.now()
-    end = int(end.timestamp() * 1000)
+    cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     url = 'https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/60'
 
     res = rq.get(url, params={
         'code': 'CRIX.UPBIT.KRW-BTC',
-        'count': '10',
-        'to': '2018-02-07 05:10:00',
+        'count': '100',
+        'to': cur_time,
     })
 
     print(res)
