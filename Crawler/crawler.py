@@ -23,7 +23,7 @@ def collect_data(path, coins):
     end = datetime.datetime.now()
     end = int(end.timestamp() * 1000)
 
-    #url = 'http://index.bithumb.com/api/coinmarketcap/localAPI.php'
+    url = 'http://index.bithumb.com/api/coinmarketcap/localAPI.php'
 
     target = start
     print("Collecting coin data : ",coins)

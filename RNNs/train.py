@@ -163,14 +163,21 @@ def train(path):
     data = np.loadtxt('./Crawler/data.csv', delimiter=',',usecols=(1), skiprows=1)
     train_len = int(len(data) * data_split_rate)
 
+    # data = data[1:] / data[:len(data)-1]
+    print(data)
+    print(np.max(data))
+
     if model.num_input == 1:
         data = np.reshape(data, (-1, 1))
 
     test_data = data[train_len:]
     train_data = data[:train_len]
 
-    train_data, label_min, label_max = MinMaxScaler(train_data, label_pos)
-    test_data = MinMaxScaler(test_data, label_pos, label_min, label_max)
+    # train_data, label_min, label_max = MinMaxScaler(train_data, label_pos)
+    # test_data = MinMaxScaler(test_data, label_pos, label_min, label_max)
+
+    train_data = MinMaxScaler(train_data, label_pos, label_max=35000)
+    test_data = MinMaxScaler(test_data, label_pos, label_max=35000)
 
     train_x, train_y = MakeDataSet(train_data, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
     test_x, test_y = MakeDataSet(test_data, model.num_seq, label_pos)
@@ -183,7 +190,6 @@ def train(path):
         sess.run(init)
 
         old_epoch, sess = load_model(path, sess)
-
 
         print("Input training epoch : ")
         epoch = int(input())
@@ -209,7 +215,7 @@ def train(path):
         save_path = saver.save(sess, path + file_name + str(epoch + old_epoch) + ".ckpt")
         print("Models saved in : %s" % save_path)
 
-        predict(path, data, label_min, label_max)
+        #predict(path, data, label_min, label_max)
 
         # Show test accuracy by matplotlib
         plt.plot(test_y)

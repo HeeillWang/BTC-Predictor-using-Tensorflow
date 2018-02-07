@@ -28,7 +28,7 @@ def collect_data(path, coins):
     res = rq.get(url, params={
         'code': 'CRIX.UPBIT.KRW-BTC',
         'count': '10',
-        'to': '2017-06-27 05:10:00',
+        'to': '2018-02-07 05:10:00',
     })
 
     print(res)
