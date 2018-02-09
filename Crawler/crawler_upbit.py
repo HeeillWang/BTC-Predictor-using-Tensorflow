@@ -22,16 +22,25 @@ def collect_data(path, coins):
 
     url = 'https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/60'
 
-    res = rq.get(url, params={
-        'code': 'CRIX.UPBIT.KRW-BTC',
-        'count': '100',
-        'to': cur_time,
-    })
+    while(1):
+        try:
+            res = rq.get(url, params={
+                'code': 'CRIX.UPBIT.KRW-BTC',
+                'count': '100',
+                'to': cur_time,
+            })
+        except:
+            print('except')
+            continue
+        else:
+            if res.status_code == 200:
+                break
+            else:
+                print('code is not 200')
+                continue
 
     print(res)
 
-    for i in res.json():
-        print(i)
 
     exit()
 
