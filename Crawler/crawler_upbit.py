@@ -20,6 +20,7 @@ returns
 '''
 def collect_data(path, coins):
     cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    flag = False
 
     url = 'https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/60'
     data = np.loadtxt(path, delimiter=',', dtype='str')
@@ -27,12 +28,13 @@ def collect_data(path, coins):
     last_time = datetime.datetime.strptime(last_time, "%a %b %d %H:%M:%S %Y")
     last_time = last_time.timestamp() * 1000    # in millisecond
 
+    collect_list = []
     target = cur_time
     while 1:
         while 1:
             try:
                 res = rq.get(url, params={
-                    'code': 'CRIX.UPBIT.KRW-BTC',
+                    'code': 'CRIX.UPBIT.USDT-BTC',
                     'count': '100',
                     'to': target,
                 })
@@ -49,11 +51,21 @@ def collect_data(path, coins):
                     print('Response code is not 200')
                     continue
 
-        if int(res.json()[0]['timestamp']) <= last_time:
-            print('collecting completed')
+        for obj in res.json():
+            if obj['timestamp'] <= last_time:
+                print('collecting completed')
+                flag = True
+                break
+            else:
+                collect_list.append([time.ctime(obj['timestamp'] / 1000), obj['tradePrice']])
+
+        if flag:
+            collect_list = collect_list[::-1]   # reverse
+            data = np.append(data, collect_list, axis=0)
+            np.savetxt('../data2.csv', data, delimiter=',', fmt="%s")
             break
         else:
-            print(json.dumps(res.json()[-1], indent=2))
+            # update target time
             target = res.json()[-1]['timestamp']
             target = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(target / 1000))
 
