@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 from time import gmtime, strftime
 from pip.compat import total_seconds
+import json
 
 '''
 Collect cryptocurrency data
@@ -21,88 +22,49 @@ def collect_data(path, coins):
     cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     url = 'https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/60'
+    data = np.loadtxt(path, delimiter=',', dtype='str')
+    last_time = data[-1][0]
+    last_time = datetime.datetime.strptime(last_time, "%a %b %d %H:%M:%S %Y")
+    last_time = last_time.timestamp() * 1000    # in millisecond
 
-    while(1):
-        try:
-            res = rq.get(url, params={
-                'code': 'CRIX.UPBIT.KRW-BTC',
-                'count': '100',
-                'to': cur_time,
-            })
-        except:
-            print('except')
-            continue
-        else:
-            if res.status_code == 200:
-                break
-            else:
-                print('code is not 200')
-                continue
-
-    print(res)
-
-
-    exit()
-
-    target = start
-    print("Collecting coin data : ",coins)
-
-    arr = []
-    title = []  # title of columns
-    title.append("time")
-
-    for coin in coins:
-        title.append(coin)
-
-    arr.append(title)
-
-    while (target <= end):
-        json_list = []
-        json_len = 0
-
-        for coin in coins:
-
-            if target + interval >= end:
+    target = cur_time
+    while 1:
+        while 1:
+            try:
                 res = rq.get(url, params={
                     'code': 'CRIX.UPBIT.KRW-BTC',
-                    'count': 24,
-                    'start': target,
-                    'end': end
+                    'count': '100',
+                    'to': target,
                 })
+            except:
+                time.sleep(1)
+                print('except')
+                continue
             else:
-                res = rq.get(url, params={
-                    'api': 'graph',
-                    'coin': 'btc',
-                    'subject': 'price_usd',
-                    'start': target,
-                    'end': target + interval
-                })
+                if res.status_code == 200 and len(res.json()) != 0:
+                    print(res)
+                    break
+                else:
+                    time.sleep(1)
+                    print('Response code is not 200')
+                    continue
 
-            if (coin == 'btc'):
-                json_len = len(res.json())
+        if int(res.json()[0]['timestamp']) <= last_time:
+            print('collecting completed')
+            break
+        else:
+            print(json.dumps(res.json()[-1], indent=2))
+            target = res.json()[-1]['timestamp']
+            target = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(target / 1000))
 
-            temp = []
-            if len(res.json()) < json_len:  # add default values
-                for i in range(json_len - len(res.json())):
-                    temp.append([0, 0])
 
-                temp = temp + res.json()
-                json_list.append(temp)
-            else:
-                json_list.append(res.json())
 
-        target = target + interval
 
-        for i in range(json_len):
-            row = []
-            row.append(time.ctime(json_list[0][i][0] / 1000))  # add timestamp
 
-            for j in range(len(json_list)):
-                row.append(json_list[j][i][1])
 
-            arr.append(row)
 
-    np.savetxt(path, arr, delimiter=',', fmt="%s")
-    print("Coin data saved in : ", path)
 
-collect_data('df','df')
+
+
+
+collect_data('../data.csv','df')
