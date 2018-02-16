@@ -73,10 +73,4 @@ def collect_data(path, coins):
 
 
 
-
-
-
-
-
-
 collect_data('../data.csv','df')
