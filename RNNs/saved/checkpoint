@@ -1,2 +1,2 @@
-model_checkpoint_path: "saved_model_epoch_5000.ckpt"
-all_model_checkpoint_paths: "saved_model_epoch_5000.ckpt"
+model_checkpoint_path: "saved_model_epoch_0.ckpt"
+all_model_checkpoint_paths: "saved_model_epoch_0.ckpt"

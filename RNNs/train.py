@@ -7,6 +7,34 @@ from os import listdir
 import datetime
 tf.set_random_seed(777)  # for reproducibility
 
+class Model():
+    num_input = 1
+    num_seq = 100
+    num_output = 1
+    num_hidden = 2
+    learning_rate = 0.01
+
+    label_min = 0
+    label_max = 35000
+
+    X = tf.placeholder(tf.float32, [None, num_seq, num_input])
+    Y = tf.placeholder(tf.float32, [None, num_output])
+
+    # RNN Model + fully-connected
+    cell = tf.contrib.rnn.BasicLSTMCell(num_units=num_hidden, state_is_tuple=True, activation=tf.tanh)
+    outputs, _ = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+    predict = tf.contrib.layers.fully_connected(outputs[:, -1], num_output,
+                                                activation_fn=None)  # use last cell's output
+    cost = tf.reduce_sum(tf.square(predict - Y))  # MSE
+    optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+
+    # Accuracy Test
+    targets = tf.placeholder(tf.float32, [None, 1])
+    predictions = tf.placeholder(tf.float32, [None, 1])
+    rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
+    mpe = tf.reduce_mean((tf.abs(targets - predictions)) / targets)
+
+
 
 '''
 min max sacling to 0 ~ 1
@@ -35,8 +63,7 @@ def MinMaxScaler(data, label_pos, label_min=0, label_max=0):
         # to avoid divide by zero, add noise
         data = (data - label_min) / (label_max - label_min + 1e-8)
 
-        return data
-
+        return data, label_min, label_max
 
 
 
@@ -84,30 +111,6 @@ def MakeDataSet(data, num_seq, pos):
 
     return (x,y)
 
-class Model():
-    num_input = 1
-    num_seq = 100
-    num_output = 1
-    num_hidden = 2
-    learning_rate = 0.01
-
-    X = tf.placeholder(tf.float32, [None, num_seq, num_input])
-    Y = tf.placeholder(tf.float32, [None, num_output])
-
-    # RNN Model + fully-connected
-    cell = tf.contrib.rnn.BasicLSTMCell(num_units=num_hidden, state_is_tuple=True, activation=tf.tanh)
-    outputs, _ = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
-    predict = tf.contrib.layers.fully_connected(outputs[:, -1], num_output,
-                                                activation_fn=None)  # use last cell's output
-    cost = tf.reduce_sum(tf.square(predict - Y))  # MSE
-    optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
-
-    # Accuracy Test
-    targets = tf.placeholder(tf.float32, [None, 1])
-    predictions = tf.placeholder(tf.float32, [None, 1])
-    rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
-    mpe = tf.reduce_mean((tf.abs(targets - predictions)) / targets)
-
 
 def load_model(path, sess):
     file_name = "saved_model_epoch_"  # prefix of file name that will be loaded
@@ -116,8 +119,8 @@ def load_model(path, sess):
     ans = input()
 
     old_epoch = 0  # epoch of restored model.
-
     saver = tf.train.Saver()
+
 
     if (ans == 'y') or (ans == 'Y'):
         num = 0
@@ -142,6 +145,7 @@ def load_model(path, sess):
 
     return old_epoch, sess
 
+
 def up_down_accuracy(target, prediction):
     acc_sum = 0
 
@@ -150,6 +154,7 @@ def up_down_accuracy(target, prediction):
             acc_sum += 1
 
     return acc_sum / (len(target) - 2)
+
 
 def train(path):
     data_split_rate = 0.7  # dataset split rate for train data. Others will be test data
@@ -160,12 +165,8 @@ def train(path):
     file_name = "saved_model_epoch_"  # prefix of file name that will be saved
     path = path + "/saved/"  # path of files
 
-    data = np.loadtxt('./Crawler/data.csv', delimiter=',',usecols=(1), skiprows=1)
+    data = np.loadtxt('./data.csv', delimiter=',',usecols=(1), skiprows=1)
     train_len = int(len(data) * data_split_rate)
-
-    # data = data[1:] / data[:len(data)-1]
-    print(data)
-    print(np.max(data))
 
     if model.num_input == 1:
         data = np.reshape(data, (-1, 1))
@@ -176,11 +177,12 @@ def train(path):
     # train_data, label_min, label_max = MinMaxScaler(train_data, label_pos)
     # test_data = MinMaxScaler(test_data, label_pos, label_min, label_max)
 
-    train_data = MinMaxScaler(train_data, label_pos, label_max=35000)
-    test_data = MinMaxScaler(test_data, label_pos, label_max=35000)
+    train_data, label_min, label_max = MinMaxScaler(train_data, label_pos, label_max=35000)
+    test_data, _, __ = MinMaxScaler(test_data, label_pos, label_max=35000)
 
     train_x, train_y = MakeDataSet(train_data, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
     test_x, test_y = MakeDataSet(test_data, model.num_seq, label_pos)
+
 
     # Add ops to save and restore all the variables.
     saver = tf.train.Saver()
@@ -188,7 +190,6 @@ def train(path):
     with tf.Session() as sess:
         init = tf.global_variables_initializer()
         sess.run(init)
-
         old_epoch, sess = load_model(path, sess)
 
         print("Input training epoch : ")
@@ -225,19 +226,22 @@ def train(path):
         plt.show()
 
 
-def predict(path, data, label_min, label_max):
+def predict(path, data):
     model = Model()
     label_pos = 0
 
+    if model.num_input == 1:
+        data = np.reshape(data, (-1, 1))
+
     with tf.Session() as sess:
         old_epoch, sess = load_model(path, sess)
+        label_min = model.label_min
+        label_max = model.label_max
 
         data_len = len(data)
-        x, _, _ = MinMaxScaler(data, label_pos)
+        x, _, _ = MinMaxScaler(data, label_pos, label_min=label_min, label_max=label_max)
         x, _ = MakeDataSet(x[data_len - model.num_seq - 1:], model.num_seq, label_pos)
 
-
         test_predict = sess.run(model.predict, feed_dict={model.X: x})
-        print(label_min, label_max)
         print('Prediction')
-        print((test_predict * (label_max - label_min + 1e-08)) + label_min)
+        print(decodePredict(test_predict, label_min, label_max))
