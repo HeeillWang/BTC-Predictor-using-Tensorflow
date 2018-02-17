@@ -21,13 +21,31 @@ returns
 def collect_data(path, coins):
     cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     flag = False
-
     url = 'https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/60'
-    data = np.loadtxt(path, delimiter=',', dtype='str')
-    last_time = data[-1][0]
-    last_time = datetime.datetime.strptime(last_time, "%a %b %d %H:%M:%S %Y")
-    last_time = last_time.timestamp() * 1000    # in millisecond
 
+    try:
+        data = np.loadtxt(path, delimiter=',', dtype='str')
+    except:
+        last_time = 0
+    else:
+        last_time = data[-1][0]
+        last_time = datetime.datetime.strptime(last_time, "%a %b %d %H:%M:%S %Y")
+        last_time = last_time.timestamp() * 1000    # in millisecond
+
+    point = datetime.datetime(year=2018, month=1, day=1, hour=1, minute=0)
+    point = point.timestamp() * 1000
+
+
+    if last_time < point:
+        import crawler_bithumb
+        crawler_bithumb.collect_data(path, ["btc"])
+
+        data = np.loadtxt(path, delimiter=',', dtype='str')
+        last_time = data[-1][0]
+        last_time = datetime.datetime.strptime(last_time, "%a %b %d %H:%M:%S %Y")
+        last_time = last_time.timestamp() * 1000    # in millisecond
+
+    print("Collecting from Upbit...")
     collect_list = []
     target = cur_time
     while 1:
@@ -62,15 +80,9 @@ def collect_data(path, coins):
         if flag:
             collect_list = collect_list[::-1]   # reverse
             data = np.append(data, collect_list, axis=0)
-            np.savetxt('../data2.csv', data, delimiter=',', fmt="%s")
+            np.savetxt(path, data, delimiter=',', fmt="%s")
             break
         else:
             # update target time
             target = res.json()[-1]['timestamp']
             target = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(target / 1000))
-
-
-
-
-
-collect_data('../data.csv','df')

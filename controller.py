@@ -2,7 +2,7 @@ import  sys
 sys.path.append('./Crawler')
 sys.path.append('./RNNs')
 
-import crawler
+import crawler_upbit
 import train
 
 
@@ -17,7 +17,7 @@ while 1:
     if num == 0:
         exit()
     elif num == 1:
-        crawler.collect_data('data.csv', ['btc'])
+        crawler_upbit.collect_data('data.csv', ['btc'])
     elif num == 2:
         train.train('./RNNs')
 
