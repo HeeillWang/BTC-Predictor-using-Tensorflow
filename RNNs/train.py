@@ -150,7 +150,7 @@ def up_down_accuracy(target, prediction):
     acc_sum = 0
 
     for i in range(len(target) - 2):
-        if((target[i] > target[i+1]) == (prediction[i] > prediction[i+1])):
+        if(target[i] < target[i+1]) == (target[i] < prediction[i+1]):
             acc_sum += 1
 
     return acc_sum / (len(target) - 2)
