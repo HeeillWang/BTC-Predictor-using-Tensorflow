@@ -6,3 +6,5 @@
 <pre><code>
 python3 controller.py
 </code><pre>
+
+controller.py를 실행시킴으로 유저 인터페이스를 실행할 수 있다.
