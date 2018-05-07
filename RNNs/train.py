@@ -32,7 +32,7 @@ class Model():
     targets = tf.placeholder(tf.float32, [None, 1])
     predictions = tf.placeholder(tf.float32, [None, 1])
     rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
-    mpe = tf.reduce_mean((tf.abs(targets - predictions)) / targets)
+    mpe = tf.reduce_mean((tf.abs(targets - predictions)) / targets) * 100
 
 
 
@@ -177,8 +177,8 @@ def train(path):
     # train_data, label_min, label_max = MinMaxScaler(train_data, label_pos)
     # test_data = MinMaxScaler(test_data, label_pos, label_min, label_max)
 
-    train_data, label_min, label_max = MinMaxScaler(train_data, label_pos, label_max=35000)
-    test_data, _, __ = MinMaxScaler(test_data, label_pos, label_max=35000)
+    train_data, label_min, label_max = MinMaxScaler(train_data, label_pos, label_max=model.label_max)
+    test_data, _, __ = MinMaxScaler(test_data, label_pos, label_max=model.label_max)
 
     train_x, train_y = MakeDataSet(train_data, model.num_seq, label_pos)  # shape = [None, num_seq, num_input]
     test_x, test_y = MakeDataSet(test_data, model.num_seq, label_pos)
@@ -210,7 +210,7 @@ def train(path):
 
         print("RMSE for test data : ", rmse_val)
         print("MPE for test data : ", mpe_val)
-        print("UP/Down prediction accuracy : ", up_down_accuracy(test_y, test_predict))
+        # print("UP/Down prediction accuracy : ", up_down_accuracy(test_y, test_predict))
 
         # Save the variables to disk.
         save_path = saver.save(sess, path + file_name + str(epoch + old_epoch) + ".ckpt")

@@ -18,7 +18,7 @@ returns
 '''
 def collect_data(path, coins):
     interval = int(total_seconds(datetime.timedelta(days=14)) * 1000)
-    start = datetime.datetime(year=2013, month=11, day=5, hour=9, minute=0)
+    start = datetime.datetime(year=2013, month=6, day=1, hour=0, minute=0)
     start = int(start.timestamp() * 1000)
     end = datetime.datetime.now()
     end = int(end.timestamp() * 1000)
